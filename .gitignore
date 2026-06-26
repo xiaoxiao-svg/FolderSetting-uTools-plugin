@@ -1,0 +1,9 @@
+# uTools 插件发布前应排除项
+*.map
+node_modules/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 测试/系统残留
+desktop.ini
