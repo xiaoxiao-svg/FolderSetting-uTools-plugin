@@ -43,7 +43,22 @@
 
 ## 开发
 
+源码位于 `dist/` 目录（含 `plugin.json` 的插件入口目录）。
+
 ```bash
-# uTools 中加载开发模式插件，目录指向：
-# D:\桌面文件\3.uTools\Folder-Chinese
+# 在 uTools 开发者工具中加载开发模式插件，目录指向：
+# D:\桌面文件\3.uTools\Folder-Chinese\dist
+```
+
+目录结构：
+
+```
+Folder-Chinese/
+├── README.md
+├── .gitignore
+└── dist/              # 插件发布目录（uTools 加载此目录）
+    ├── plugin.json    # 入口配置
+    ├── preload.js     # 文件夹读写 + 刷新逻辑
+    ├── index.html     # 界面
+    └── logo.png
 ```
