@@ -38,6 +38,31 @@
         "文件夹历史",
         "文件夹管理"
       ]
+    },
+    {
+      "code": "folder-merge-to-new",
+      "explain": "将选中的文件或文件夹放入新建文件夹",
+      "cmds": [
+        {
+          "type": "files",
+          "label": "放入新建文件夹",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      ]
+    },
+    {
+      "code": "folder-dissolve",
+      "explain": "将选中文件夹内的项目解散到上一级目录",
+      "cmds": [
+        {
+          "type": "files",
+          "label": "解散文件夹",
+          "fileType": "directory",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      ]
     }
   ]
 }

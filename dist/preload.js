@@ -252,6 +252,123 @@ function getFolderName(folderPath) {
   return path.basename(folderPath);
 }
 
+// ============ 放入新建文件夹 / 解散到上一级 ============
+
+/**
+ * 将选中的文件/文件夹放入新建文件夹
+ */
+function mergeToNewFolder(filePaths) {
+  try {
+    if (!filePaths || filePaths.length === 0) return { success: false, error: '没有选择文件' };
+
+    const parentDir = path.dirname(filePaths[0]);
+    const allSameParent = filePaths.every(p => path.dirname(p) === parentDir);
+    if (!allSameParent) return { success: false, error: '所选项目不在同一目录' };
+
+    let newName = '新建文件夹', counter = 0, newFolderPath;
+    do {
+      newFolderPath = path.join(parentDir, counter === 0 ? newName : `${newName} (${counter})`);
+      counter++;
+    } while (fs.existsSync(newFolderPath));
+
+    fs.mkdirSync(newFolderPath, { recursive: true });
+
+    let moved = 0;
+    for (const fp of filePaths) {
+      fs.renameSync(fp, path.join(newFolderPath, path.basename(fp)));
+      moved++;
+    }
+    return { success: true, folderName: path.basename(newFolderPath), moved };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * 将选中文件夹内的项目解散到上一级目录，然后删除空文件夹
+ */
+function dissolveFolder(folderPaths) {
+  const errors = [];
+  const dissolved = [];
+
+  for (const fp of folderPaths) {
+    try {
+      if (!fs.statSync(fp).isDirectory()) { errors.push({ path: fp, error: '不是文件夹' }); continue; }
+
+      const parent = path.dirname(fp);
+      if (parent === fp) { errors.push({ path: fp, error: '不能解散驱动器根目录' }); continue; }
+
+      const items = fs.readdirSync(fp);
+      for (const item of items) {
+        const src = path.join(fp, item);
+        let dest = path.join(parent, item);
+        if (fs.existsSync(dest)) {
+          const ext = path.extname(item);
+          const base = path.basename(item, ext);
+          let c = 1;
+          do { dest = path.join(parent, `${base}(${c})${ext}`); c++; } while (fs.existsSync(dest));
+        }
+        fs.renameSync(src, dest);
+      }
+      fs.rmdirSync(fp);
+      dissolved.push(fp);
+    } catch (e) {
+      errors.push({ path: fp, error: e.message });
+    }
+  }
+  return { success: errors.length === 0, dissolved, errors };
+}
+
+// ============ 文件夹颜色（PNG 转 ICO 缓存）============
+
+const COLOR_ICON_DIR = path.join(__dirname, 'icon');
+const COLOR_CACHE_DIR = path.join(
+  process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'),
+  'folder-chinese-icons'
+);
+try { if (!fs.existsSync(COLOR_CACHE_DIR)) fs.mkdirSync(COLOR_CACHE_DIR, { recursive: true }); } catch (e) {}
+
+function getAvailableColors() {
+  try {
+    if (!fs.existsSync(COLOR_ICON_DIR)) return [];
+    return fs.readdirSync(COLOR_ICON_DIR)
+      .filter(f => f.endsWith('.png'))
+      .map(f => f.replace('文件夹.png', '').replace('.png', ''));
+  } catch (e) { return []; }
+}
+
+/** PNG 读取 → 直接以 PNG 数据包裹 ICO 容器（有效，Win7+ 支持） */
+function pngToIcoBuffer(pngPath) {
+  const png = fs.readFileSync(pngPath);
+  const w = png.readUInt32BE(16), h = png.readUInt32BE(20);
+  const hdr = Buffer.alloc(6);
+  hdr.writeUInt16LE(0, 0); hdr.writeUInt16LE(1, 2); hdr.writeUInt16LE(1, 4);
+  const ent = Buffer.alloc(16);
+  ent.writeUInt8(w >= 256 ? 0 : w, 0); ent.writeUInt8(h >= 256 ? 0 : h, 1);
+  ent.writeUInt8(0, 2); ent.writeUInt8(0, 3);
+  ent.writeUInt16LE(1, 4); ent.writeUInt16LE(32, 6);
+  ent.writeUInt32LE(png.length, 8); ent.writeUInt32LE(22, 12);
+  return Buffer.concat([hdr, ent, png]);
+}
+
+function setFolderColor(folderPath, colorName) {
+  try {
+    const pngPath = path.join(COLOR_ICON_DIR, `${colorName}文件夹.png`);
+    if (!fs.existsSync(pngPath)) return { success: false, error: `缺少图标:${colorName}` };
+    const icoPath = path.join(COLOR_CACHE_DIR, `${colorName}.ico`);
+    if (!fs.existsSync(icoPath)) fs.writeFileSync(icoPath, pngToIcoBuffer(pngPath));
+    return setFolderIcon(folderPath, icoPath);
+  } catch (e) { return { success: false, error: e.message }; }
+}
+
+function clearFolderColor(folderPath) { return clearFolderIcon(folderPath); }
+
+function getActiveColor(folderPath) {
+  const cfg = getFolderConfig(folderPath);
+  if (!cfg.icon) return null;
+  return getAvailableColors().includes(path.basename(cfg.icon, '.ico')) ? path.basename(cfg.icon, '.ico') : null;
+}
+
 // 导出给前端使用
 window.services = {
   // 配置读写
@@ -271,5 +388,13 @@ window.services = {
   restartExplorer,
   // 工具
   isDirectory,
-  getFolderName
+  getFolderName,
+  // 文件操作
+  mergeToNewFolder,
+  dissolveFolder,
+  // 颜色
+  getAvailableColors,
+  setFolderColor,
+  clearFolderColor,
+  getActiveColor
 };
