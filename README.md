@@ -68,7 +68,7 @@ Folder-Chinese/
     ├── script.js      # 前端逻辑（卡片渲染、颜色选择、历史记录）
     ├── style.css      # 样式
     ├── logo.png
-    └── icon/          # 预设 7 色 PNG 文件夹图标（200×200，PNG→ICO 运行时转换）
+    └── icon/          # 预设 7 色 PNG 文件夹图标（128×128，PNG→ICO 运行时转换）
         ├── 红色文件夹.png
         ├── 蓝色文件夹.png
         ├── 绿色文件夹.png
