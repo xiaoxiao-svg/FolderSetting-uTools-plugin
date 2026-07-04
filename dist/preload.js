@@ -84,7 +84,7 @@ function getFolderConfig(folderPath) {
   const kv = parseIni(folderPath);
   return {
     alias: kv.LocalizedResourceName || null,
-    icon: kv.IconResource || null,
+    icon: kv.IconResource ? kv.IconResource.split(',')[0] : null,
     infoTip: kv.InfoTip || null
   };
 }
@@ -366,7 +366,10 @@ function clearFolderColor(folderPath) { return clearFolderIcon(folderPath); }
 function getActiveColor(folderPath) {
   const cfg = getFolderConfig(folderPath);
   if (!cfg.icon) return null;
-  return getAvailableColors().includes(path.basename(cfg.icon, '.ico')) ? path.basename(cfg.icon, '.ico') : null;
+  // IconResource 格式：path,index — 先去掉 ,index 再取文件名
+  const icoPath = cfg.icon.split(',')[0];
+  const colorName = path.basename(icoPath, '.ico');
+  return getAvailableColors().includes(colorName) ? colorName : null;
 }
 
 // 导出给前端使用

@@ -203,12 +203,20 @@ function setColor(i, colorName, e) {
   const folder = folders[i];
   if (!colorName) {
     const r = services.clearFolderColor(folder.path);
-    if (r.success) afterChange(folder.path, '已清除颜色');
-    else showToast('清除失败: ' + r.error, 'error');
+    if (r.success) {
+      showToast('已清除颜色', 'success');
+      renderFolders();
+      services.notifyFolderChanged(folder.path);
+      services.deepRefresh();
+    } else showToast('清除失败: ' + r.error, 'error');
   } else {
     const r = services.setFolderColor(folder.path, colorName);
-    if (r.success) afterChange(folder.path, `已设为${colorName}文件夹`);
-    else showToast('设置失败: ' + r.error, 'error');
+    if (r.success) {
+      showToast(`已设为${colorName}文件夹`, 'success');
+      renderFolders();
+      services.notifyFolderChanged(folder.path);
+      services.deepRefresh();
+    } else showToast('设置失败: ' + r.error, 'error');
   }
 }
 
