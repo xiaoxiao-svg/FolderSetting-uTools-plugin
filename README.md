@@ -48,32 +48,58 @@
 
 ## 开发
 
-源码位于 `dist/` 目录（含 `plugin.json` 的插件入口目录）。
+### 技术栈
+
+- **UI 层**：Vite 7 + Vue 3.5 + TypeScript（`<script setup>`）
+- **后端**：`public/preload.js`（CommonJS，Node.js + Electron 渲染进程 API）
+- **构建产物**：`dist/`，由 `npm run build` 生成
+- **开发模式**：`npm run dev` 起 Vite dev server（`http://127.0.0.1:5177`），uTools 开发者工具"接出开发"点 `dist/` 触发 HMR
+
+### 首次启动
 
 ```bash
-# 在 uTools 开发者工具中加载开发模式插件，目录指向：
-# D:\桌面文件\3.uTools\Folder-Chinese\dist
+npm install        # 安装依赖
+npm run dev        # 起 Vite dev server（保持后台运行）
 ```
 
-目录结构：
+uTools 开发者工具 → "接出开发" → 选 `D:\桌面文件\3.uTools\Folder-Chinese\dist` 目录 → 点运行。
+
+### 目录结构
 
 ```
 Folder-Chinese/
-├── README.md
-├── .gitignore
-└── dist/              # 插件发布目录（uTools 加载此目录）
-    ├── plugin.json    # 入口配置（5 个 feature）
-    ├── preload.js     # Node.js 后端（desktop.ini 读写 + 文件操作 + 图标缓存）
-    ├── index.html     # 界面框架
-    ├── script.js      # 前端逻辑（卡片渲染、颜色选择、历史记录）
-    ├── style.css      # 样式
-    ├── logo.png
-    └── icon/          # 预设 7 色 PNG 文件夹图标（128×128，PNG→ICO 运行时转换）
-        ├── 红色文件夹.png
-        ├── 蓝色文件夹.png
-        ├── 绿色文件夹.png
-        ├── 黄色文件夹.png
-        ├── 紫色文件夹.png
-        ├── 灰色文件夹.png
-        └── 黑色文件夹.png
+├── public/                  # 静态资源（Vite 原样拷贝到 dist/）
+│   ├── preload.js           # uTools preload（CommonJS，不进 Vite 构建）
+│   ├── package.json         # {"type":"commonjs"}，作用域覆盖 preload
+│   ├── plugin.json          # 入口配置 + development.main
+│   ├── logo.png
+│   └── icon/                # 7 色 128×128 PNG 文件夹图标
+├── src/                     # Vue 源码
+│   ├── main.ts / App.vue
+│   ├── style.css
+│   ├── types.ts             # Window.utools + Window.services 类型声明
+│   ├── composables/useUtools.ts
+│   └── components/          # EmptyPanel / FolderCard / HistoryList
+├── dist/                    # 构建产物（不要手改）
+├── vite.config.ts
+├── tsconfig.json
+├── package.json
+└── CLAUDE.md                # 项目约定（给 AI 看的）
 ```
+
+### 开发要点
+
+- 改 Vue 文件 → 自动 HMR（无需手动刷新）
+- 改 `public/preload.js` → 必须"退出到后台立即结束运行"再重新接出（preload 不能热更新）
+- 改 `public/plugin.json` → 同上，uTools 会缓存旧 plugin.json
+- 发布前 `npm run build` 生成 `dist/`，uTools 开发者工具"打开"选 `dist/` 即可
+
+### 常见坑
+
+| 错误 | 修复 |
+|---|---|
+| `require() of ES Module ... preload.js` | `public/package.json` 必须 `{"type":"commonjs"}` |
+| `"preload"配置文件不是js文件` | 不要改名为 `.cjs`，保留 `.js` |
+| `Port 5177 is already in use` | `netstat -ano \| findstr 5177` + `taskkill //PID ... //F` |
+| 历史记录空白 | `dbStorage.getItem` 返回 `{value, _id, _rev}` 需脱壳 |
+| 改 plugin.json 不生效 | 退出接出 + 重新接出 |

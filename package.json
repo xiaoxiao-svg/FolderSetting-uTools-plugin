@@ -1,0 +1,23 @@
+{
+  "name": "folder-chinese",
+  "version": "2.0.0",
+  "private": true,
+  "description": "文件夹设置工具 - 中文别名、自定义图标、备注提示，保留英文底层路径",
+  "author": "xiaoxiao",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "png-to-ico": "^2.0.1",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^7.0.0",
+    "vue-tsc": "^2.2.8"
+  }
+}

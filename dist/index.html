@@ -4,44 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>文件夹设置</title>
-  <link rel="stylesheet" href="style.css">
+  <script type="module" crossorigin src="./assets/index-BjGokNdc.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-D4d_Bb3i.css">
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-title">
-      <div class="logo">📁</div>
-      <div>
-        <h1>文件夹设置</h1>
-        <p>中文别名 · 自定义图标 · 备注提示</p>
-      </div>
-    </div>
-    <div class="tabs">
-      <div class="tab active" id="tab-edit" onclick="switchTab('edit')">设置</div>
-      <div class="tab" id="tab-history" onclick="switchTab('history')">历史</div>
-    </div>
-  </div>
-
-  <div id="view-edit">
-    <div class="drop-zone" id="dropZone"
-      ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-      <div id="folderList"></div>
-    </div>
-    <div class="card-footer">
-      <div class="footer" id="footer" style="display:none">
-        <button class="btn btn-primary" onclick="applyAll()">全部应用</button>
-        <button class="btn btn-ghost" onclick="deepRefresh(this)">深度刷新</button>
-        <button class="btn btn-ghost" onclick="clearFolders()">清空列表</button>
-      </div>
-    </div>
-    <div class="hint">应用后会自动通知系统刷新；若资源管理器未更新，点"深度刷新"或按 F5</div>
-  </div>
-
-  <div id="view-history" style="display:none">
-    <div id="historyList"></div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <script src="script.js"></script>
+  <div id="app"></div>
 </body>
 </html>
