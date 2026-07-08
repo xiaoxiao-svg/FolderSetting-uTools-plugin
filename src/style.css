@@ -224,6 +224,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 .card-colors {
   display: flex; align-items: center; gap: 4px;
   margin-left: auto; flex-shrink: 0; padding-left: 8px;
+  align-self: flex-end;
 }
 .color-icon {
   display: block;
