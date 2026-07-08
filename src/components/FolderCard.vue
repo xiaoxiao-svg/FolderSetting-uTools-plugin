@@ -30,16 +30,18 @@ const emit = defineEmits<{
       <div class="card-icon">📁</div>
       <div class="card-meta">
         <div class="card-name">{{ escapeHtml(folder.name) }}</div>
-        <div class="card-path" :title="escapeHtml(folder.path)">{{ escapeHtml(folder.path) }}</div>
-        <div v-if="cfg.alias || activeColor || cfg.icon || cfg.infoTip" class="badges">
-          <span v-if="cfg.alias" class="badge green">🏷 {{ escapeHtml(cfg.alias) }}</span>
-          <span
-            v-if="activeColor"
-            class="badge"
-            :style="{ background: colorDisplay[activeColor], color: '#fff' }"
-          >📁 {{ activeColor }}</span>
-          <span v-else-if="cfg.icon" class="badge">🎨 图标</span>
-          <span v-if="cfg.infoTip" class="badge">💬 {{ escapeHtml(cfg.infoTip) }}</span>
+        <div class="card-meta-row">
+          <span class="card-path" :title="escapeHtml(folder.path)">{{ escapeHtml(folder.path) }}</span>
+          <span v-if="cfg.alias || activeColor || cfg.icon || cfg.infoTip" class="badges">
+            <span v-if="cfg.alias" class="badge green">🏷 {{ escapeHtml(cfg.alias) }}</span>
+            <span
+              v-if="activeColor"
+              class="badge"
+              :style="{ background: colorDisplay[activeColor], color: '#fff' }"
+            >📁 {{ activeColor }}</span>
+            <span v-else-if="cfg.icon" class="badge">🎨 图标</span>
+            <span v-if="cfg.infoTip" class="badge">💬 {{ escapeHtml(cfg.infoTip) }}</span>
+          </span>
         </div>
       </div>
       <div class="card-colors">
