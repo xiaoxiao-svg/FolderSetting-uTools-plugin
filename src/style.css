@@ -161,7 +161,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 .card-path {
   font-size: 11px; color: var(--text-3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  flex: 1 1 auto; min-width: 0;
+  flex: 0 1 auto; min-width: 0;
 }
 .badges { display: inline-flex; gap: 6px; flex-shrink: 0; }
 .badge {
@@ -248,7 +248,8 @@ body::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 .color-dot.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--text); }
 .color-dot.clear {
   background: var(--bg); border: 1px dashed var(--border);
-  font-size: 9px; line-height: 16px; text-align: center; color: var(--text-3); width: 16px; height: 16px;
+  font-size: 10px; color: var(--text-3); width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
 }
 .color-dot.clear:hover { border-color: var(--danger); color: var(--danger); }
 
