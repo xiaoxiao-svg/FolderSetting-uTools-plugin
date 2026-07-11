@@ -49,10 +49,6 @@ async function loadHistory() {
   historyList.splice(0, historyList.length);
   if (raw) {
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    // utools.dbStorage 返回形态：
-    //   1. 直接数组（自动脱壳后）
-    //   2. { value: [...], _id, _rev }（数据库文档原始形态）
-    //   3. 数组 JSON 字符串
     let list: HistoryItem[] = [];
     if (Array.isArray(parsed)) {
       list = parsed;
@@ -107,33 +103,15 @@ function setupFolders(payload: PluginEnterPayload) {
   }
 
   // 独立操作：放入新建文件夹 / 解散文件夹（不涉及编辑 UI）
+  // 系统通知直接在 preload.js 的服务函数内触发，避开 mainHide 对前端通知的抑制
   if (code === 'folder-merge-to-new') {
-    const paths = items.map(i => i.path);
-    const r = services.mergeToNewFolder(paths);
-    if (r.success) {
-      utools.showNotification(`已创建"${r.value!.folderName}"并移入 ${r.value!.moved} 个项目`);
-    } else {
-      utools.showNotification('操作失败: ' + r.error);
-    }
-    utools.outPlugin();
+    services.mergeToNewFolder(items.map(i => i.path));
     return;
   }
   if (code === 'folder-dissolve') {
     const paths = items.filter(i => i.isDirectory).map(i => i.path);
-    if (!paths.length) {
-      utools.showNotification('请选择文件夹');
-      utools.outPlugin();
-      return;
-    }
-    const r = services.dissolveFolder(paths);
-    if (r.success) {
-      const v = r.value!;
-      if (!v.errors.length) utools.showNotification(`已解散 ${v.dissolved.length} 个文件夹`);
-      else utools.showNotification(`已解散 ${v.dissolved.length} 个，失败 ${v.errors.length} 个`);
-    } else {
-      utools.showNotification('操作失败: ' + r.error);
-    }
-    utools.outPlugin();
+    if (!paths.length) return;
+    services.dissolveFolder(paths);
     return;
   }
 

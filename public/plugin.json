@@ -45,6 +45,7 @@
     {
       "code": "folder-merge-to-new",
       "explain": "将选中的文件或文件夹放入新建文件夹",
+      "mainHide": true,
       "cmds": [
         {
           "type": "files",
@@ -57,6 +58,7 @@
     {
       "code": "folder-dissolve",
       "explain": "将选中文件夹内的项目解散到上一级目录",
+      "mainHide": true,
       "cmds": [
         {
           "type": "files",
