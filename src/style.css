@@ -248,8 +248,9 @@ body::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 .color-dot.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--text); }
 .color-dot.clear {
   background: var(--bg); border: 1px dashed var(--border);
-  font-size: 10px; color: var(--text-3); width: 16px; height: 16px;
+  color: var(--text-3); width: 16px; height: 16px;
   display: flex; align-items: center; justify-content: center;
+  font-size: 10px; line-height: 1;
 }
 .color-dot.clear:hover { border-color: var(--danger); color: var(--danger); }
 

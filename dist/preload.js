@@ -278,6 +278,7 @@ function mergeToNewFolder(filePaths) {
       fs.renameSync(fp, path.join(newFolderPath, path.basename(fp)));
       moved++;
     }
+    utools.showNotification(`已创建"${path.basename(newFolderPath)}"并移入 ${moved} 个项目`);
     return { success: true, folderName: path.basename(newFolderPath), moved };
   } catch (e) {
     return { success: false, error: e.message };
@@ -315,6 +316,12 @@ function dissolveFolder(folderPaths) {
     } catch (e) {
       errors.push({ path: fp, error: e.message });
     }
+  }
+  if (dissolved.length || errors.length) {
+    const msg = errors.length
+      ? `已解散 ${dissolved.length} 个，失败 ${errors.length} 个`
+      : `已解散 ${dissolved.length} 个文件夹`;
+    utools.showNotification(msg);
   }
   return { success: errors.length === 0, dissolved, errors };
 }

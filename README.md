@@ -101,5 +101,5 @@ Folder-Chinese/
 | `require() of ES Module ... preload.js` | `public/package.json` 必须 `{"type":"commonjs"}` |
 | `"preload"配置文件不是js文件` | 不要改名为 `.cjs`，保留 `.js` |
 | `Port 5177 is already in use` | `netstat -ano \| findstr 5177` + `taskkill //PID ... //F` |
-| 历史记录空白 | `dbStorage.getItem` 返回 `{value, _id, _rev}` 需脱壳 |
+| 全部应用报错 `An object could not be cloned` | `db.promises.put` 传入 Vue reactive 数组，Proxy 无法被 structuredClone 克隆 | items 经 `.map(h => ({path, alias, name, ts}))` 撕壳成字面量对象再传 |
 | 改 plugin.json 不生效 | 退出接出 + 重新接出 |

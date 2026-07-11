@@ -44,19 +44,84 @@ function switchTab(tab: Tab) {
   else refreshFolders();
 }
 
-async function loadHistory() {
-  const raw = await utools.dbStorage.getItem(HISTORY_KEY);
-  historyList.splice(0, historyList.length);
-  if (raw) {
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    let list: HistoryItem[] = [];
-    if (Array.isArray(parsed)) {
-      list = parsed;
-    } else if (Array.isArray((parsed as any)?.value)) {
-      list = (parsed as any).value;
-    }
-    historyList.push(...list);
+// 历史记录文档结构（utools.db NoSQL 文档，数据库工具里展示为展开形态）
+let historyRev: string | undefined;
+
+/**
+ * 从 db 文档解析 items 数组
+ * 兼容两种形态：
+ *   - 迁移后正确形态：doc.items 是数组
+ *   - dbStorage 迁移前的"错误"形态：doc.value 是 JSON 字符串（dbStorage 整体被塞进 db 的 value 字段）
+ * 返回 needsRewrite：数据来自旧格式 value 字符串时，调用方应原地 put 覆盖为 items 数组形态
+ */
+function parseDoc(doc: any): { items: HistoryItem[]; needsRewrite: boolean } {
+  if (!doc) return { items: [], needsRewrite: false };
+  if (Array.isArray(doc.items)) return { items: doc.items, needsRewrite: false };
+  if (typeof doc.value === 'string') {
+    try {
+      const parsed = JSON.parse(doc.value);
+      if (Array.isArray(parsed)) return { items: parsed, needsRewrite: true };
+      if (Array.isArray(parsed?.value)) return { items: parsed.value, needsRewrite: true };
+    } catch { /* 解析失败返回空 */ }
   }
+  return { items: [], needsRewrite: false };
+}
+
+/**
+ * 从 dbStorage 解析旧数据（兼容字符串 / {value} 包壳两种形态）
+ */
+function parseLegacy(raw: string | null): HistoryItem[] {
+  if (!raw) return [];
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray((parsed as any)?.value)) return (parsed as any).value;
+  } catch { /* 解析失败返回空 */ }
+  return [];
+}
+
+async function loadHistory() {
+  historyList.splice(0, historyList.length);
+
+  // 1. 先尝试从新 db 读
+  const doc = await utools.db.promises.get(HISTORY_KEY);
+  let { items, needsRewrite } = parseDoc(doc);
+  historyRev = (doc as any)?._rev;
+  console.log('[folder-chinese] loadHistory: db items =', items.length);
+
+  // 2. 旧格式（value 字符串）→ 原地重写为 {items: [...]}，让数据库查看器能展开
+  if (needsRewrite && items.length) {
+    const rewriteRes = await utools.db.promises.put({ _id: HISTORY_KEY, _rev: historyRev, items });
+    console.log('[folder-chinese] loadHistory: rewrite legacy =', rewriteRes.ok);
+    if (rewriteRes.ok) historyRev = rewriteRes.rev;
+  }
+
+  // 3. db 为空时，尝试从 dbStorage 迁移旧数据
+  //    迁移条件严格：db 空 + dbStorage 有数据 + 写入成功后再次从 db 读到 → 才删旧位
+  if (!items.length) {
+    const legacy = await utools.dbStorage.getItem(HISTORY_KEY);
+    const legacyItems = parseLegacy(legacy);
+    console.log('[folder-chinese] loadHistory: legacy items =', legacyItems.length);
+    if (legacyItems.length) {
+      const res = await utools.db.promises.put({ _id: HISTORY_KEY, _rev: historyRev, items: legacyItems });
+      console.log('[folder-chinese] loadHistory: put result =', res);
+      if (res.ok) {
+        // 写入成功 → 再次从 db 读，确认数据真实落到 db
+        const verify = await utools.db.promises.get(HISTORY_KEY);
+        console.log('[folder-chinese] loadHistory: verify items =', Array.isArray((verify as any)?.items) ? (verify as any).items.length : 'not array');
+        if (Array.isArray((verify as any)?.items) && (verify as any).items.length) {
+          items = (verify as any).items;
+          historyRev = (verify as any)._rev;
+          historyList.splice(0, historyList.length, ...items);
+          // 确认验证通过后才删旧位
+          utools.dbStorage.removeItem(HISTORY_KEY).catch(() => {});
+        }
+      }
+    }
+  }
+
+  historyList.push(...items);
+  console.log('[folder-chinese] loadHistory: final historyList =', historyList.length);
 }
 
 async function saveHistory(path: string, alias: string) {
@@ -65,13 +130,18 @@ async function saveHistory(path: string, alias: string) {
   if (list.length > 100) list.length = 100;
   // 同步到响应式数组
   historyList.splice(0, historyList.length, ...list);
-  await utools.dbStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  // 存 JS 对象（非字符串）：uTools 按 NoSQL 文档展开存储
+  // items 必须映射为字面量对象——historyList 是 reactive 数组，元素是 Vue Proxy，Proxy 无法被 structuredClone 克隆会抛 "An object could not be cloned"
+  const plain = { _id: HISTORY_KEY, _rev: historyRev, items: list.map(h => ({ path: h.path, alias: h.alias, name: h.name, ts: h.ts })) };
+  const res = await utools.db.promises.put(plain);
+  if (res.ok) historyRev = res.rev;
 }
 
 function removeHistory(path: string) {
   const list = historyList.filter(h => h.path !== path);
   historyList.splice(0, historyList.length, ...list);
-  utools.dbStorage.setItem(HISTORY_KEY, JSON.stringify(list)).catch(() => {});
+  const plain = { _id: HISTORY_KEY, _rev: historyRev, items: list.map(h => ({ path: h.path, alias: h.alias, name: h.name, ts: h.ts })) };
+  utools.db.promises.put(plain).then(res => { if (res.ok) historyRev = res.rev; }).catch(() => {});
 }
 
 function refreshFolders() {
