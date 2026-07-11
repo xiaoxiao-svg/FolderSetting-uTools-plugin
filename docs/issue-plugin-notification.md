@@ -114,3 +114,8 @@ if (code === 'folder-dissolve') {
 - `public/preload.js:255-320` — 服务函数（mergeToNewFolder / dissolveFolder）
 - `src/App.vue:105-121` — 前端 feature 分支
 - `src/composables/useUtools.ts` — 前端 utools 封装（w.utools === window.utools）
+
+## 关联文档
+
+- 项目 `CLAUDE.md` — Vue 层要点 / 红线（已更新，记录 mainHide + 通知的职责边界）
+- 项目记忆 `memory/project-context.md` — 已更新 Known issues 和 Resolved bugs

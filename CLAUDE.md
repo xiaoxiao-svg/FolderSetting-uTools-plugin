@@ -41,7 +41,7 @@ Folder-Chinese/
 
 ## 红线
 
-- **永远不改 `public/preload.js` 的内容** —— 它是 Node.js 后端，重写等于重做 desktop.ini / 文件系统 / PNG→ICO / PowerShell 整条链路。
+- **永远不改 `public/preload.js` 的内容** —— 它是 Node.js 后端，重写等于重做 desktop.ini / 文件系统 / PNG→ICO / PowerShell 整条链路。但给服务函数**加通知能力**（扩展 `utools.showNotification` 调用）属服务内容扩展，可接受。
 - **永远不改 `public/plugin.json` 的 `main` 字段** —— uTools 强制顶层 main 必须为本地 html 相对路径；HMR 用 `development.main`。
 - **dist/ 改动无效** —— 每次 build 都会清空重建。想改产物，改 src/ 或 public/。
 - **不在 dist/ 留 `console.log`** —— 构建后 log 会污染 uTools 控制台。
@@ -66,6 +66,8 @@ Folder-Chinese/
 - **HMR 兜底**：`import.meta.hot?.dispose + accept`（uTools 的 window 理论上不重建，但保底）。
 - **dbStorage 返回形态**：`Array.isArray(parsed) ? parsed : parsed?.value`，兼容新旧 uTools 版本。
 - **uTools 缓存 plugin.json**：改 plugin.json 后必须"退出到后台立即结束运行"+重新"接出开发"。
+- **mainHide 模式与 utools API 的环境差异**：feature 配置 `"mainHide": true"` 后，uTools 会把该 feature 视作"后台执行"，**同时抑制前端渲染进程的 `utools.showNotification` 调用**（前端 rAF / setTimeout 也不触发）。需要弹系统通知时，**必须在 `preload.js` 的服务函数内直接调用** `utools.showNotification`，不要依赖前端。
+- **"直接执行"类 feature 的职责边界**：`mainHide` 的 feature（目前为放入新建文件夹、解散文件夹），业务逻辑 + 用户反馈（系统通知）**全部写在 preload.js**，前端 `App.vue` 只保留调服务函数 + `return`，不介入。
 
 ## 开发流程
 
