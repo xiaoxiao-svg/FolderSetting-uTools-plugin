@@ -45,7 +45,7 @@ Folder-Chinese/
 - **永远不改 `public/plugin.json` 的 `main` 字段** —— uTools 强制顶层 main 必须为本地 html 相对路径；HMR 用 `development.main`。
 - **dist/ 改动无效** —— 每次 build 都会清空重建。想改产物，改 src/ 或 public/。
 - **不在 dist/ 留 `console.log`** —— 构建后 log 会污染 uTools 控制台。
-- **dbStorage.setItem 必须 await** —— fire-and-forget 会导致历史记录偶发丢失。
+- **`db.promises.put` 不能传 Vue Proxy**：入参经 `structuredClone` 克隆，reactive 数组元素（Proxy）不可克隆 → 抛 `An object could not be cloned`。存入前必须 `.map(h => ({path, alias, name, ts}))` 撕壳成字面量对象。
 - **`public/package.json` 必须 `type: "commonjs"`** —— 否则 electron 用 `require()` 加载 `preload.js` 会报 `require() of ES Module`（根 `package.json` 是 `type: "module"`）。
 
 ## Vite 关键配置
@@ -64,7 +64,7 @@ Folder-Chinese/
 - **生命周期**：`onMounted` 里先注册 `utools.onPluginEnter`、再立刻 `loadHistory()`（不等切 tab，否则"最近设置"不显示）、`await nextTick()` 后调 `setExpendHeight(600)`。
 - **高度同步**：用 `watch(..., { flush: 'post' })` 自动跟踪，不用每处手动 `adjustHeight`。
 - **HMR 兜底**：`import.meta.hot?.dispose + accept`（uTools 的 window 理论上不重建，但保底）。
-- **dbStorage 返回形态**：`Array.isArray(parsed) ? parsed : parsed?.value`，兼容新旧 uTools 版本。
+- **历史记录存储已迁移到 `utools.db.promises`**：文档形态 `{_id, _rev, items: [...]}`，`.put` 原生对象/数组（NoSQL 展开存储）。`dbStorage` 仅作遗留数据迁移的降级读取位（db 为空时从 dbStorage 读旧数据写入 db）。
 - **uTools 缓存 plugin.json**：改 plugin.json 后必须"退出到后台立即结束运行"+重新"接出开发"。
 - **mainHide 模式与 utools API 的环境差异**：feature 配置 `"mainHide": true"` 后，uTools 会把该 feature 视作"后台执行"，**同时抑制前端渲染进程的 `utools.showNotification` 调用**（前端 rAF / setTimeout 也不触发）。需要弹系统通知时，**必须在 `preload.js` 的服务函数内直接调用** `utools.showNotification`，不要依赖前端。
 - **"直接执行"类 feature 的职责边界**：`mainHide` 的 feature（目前为放入新建文件夹、解散文件夹），业务逻辑 + 用户反馈（系统通知）**全部写在 preload.js**，前端 `App.vue` 只保留调服务函数 + `return`，不介入。
@@ -94,6 +94,6 @@ uTools 开发者工具操作：
 | `require() of ES Module ... preload.js` | electron 按 ESM 加载 CJS preload | `public/package.json` 设 `type: "commonjs"` |
 | `"preload"配置文件不是js文件` | uTools 强制 `.js` 后缀 | 不改名为 `.cjs`，保留 `.js` |
 | `Port 5177 is already in use` | 旧的 dev 进程没退出 | `netstat -ano \| findstr 5177` + `taskkill //PID ... //F` |
-| 历史页空白 | `dbStorage.getItem` 返回 `{value, _id, _rev}` 没脱壳 | loadHistory 里兼容解析 |
+| 全部应用报错 `An object could not be cloned` | `db.promises.put` 传入 Vue reactive 数组，Proxy 不可被 structuredClone 克隆 | items 经 `.map(h => ({path, alias, name, ts}))` 撕壳成字面量对象再传 |
 | 进入后"最近设置"不显示 | 只在切 tab 才加载历史 | `onMounted` 里立刻 `loadHistory` |
 | 改 plugin.json 不生效 | uTools 缓存旧 plugin.json | 退出接出 + 重新接出 |

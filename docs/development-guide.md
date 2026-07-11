@@ -120,8 +120,10 @@ VITE v7.x.x  ready in xxx ms
 ```
 用户操作 → Vue emit → App.vue handler → window.services.* → preload.js → Node.js/Electron API
                                         ↓
-                                   utools.dbStorage.* （uTools 内置 DB，持久化历史记录）
+                                   utools.db.promises.* （uTools NoSQL DB，持久化历史记录）
 ```
+
+> ⚠️ **Proxy 克隆陷阱**：`db.promises.put(doc)` 内部用 `structuredClone` 序列化入参，Vue reactive 对象（Proxy）不可克隆 → 抛 `An object could not be cloned`。`saveHistory` / `removeHistory` 存入前必须经 `.map(h => ({path, alias, name, ts}))` 撕壳。`dbStorage.setItem` 无此限制（内部自行序列化），但项目已迁移到 `db.promises`，不可退回。
 
 ---
 
@@ -164,16 +166,13 @@ electron 加载 `.js` 时往上找最近的 `package.json`，读到 `type: "comm
 2. 有 LISTEN 但连不上 → 可能绑到 IPv6 了 → 检查 `vite.config.ts` 里 `host: '127.0.0.1'`
 3. 没 LISTEN → dev server 没起来 → `npm run dev` 重新起
 
-### 坑 D：历史记录空白
+### 坑 D：遗留数据格式（历史）
 
-可能原因：
-1. **初始加载时机**：必须在 `onMounted` 里立刻 `loadHistory()`（进入就加载），不要等用户切到 history tab。否则"最近设置"也会空白。
-2. **返回值形态**：`dbStorage.getItem` 在不同 uTools 版本返回不同——有的是自动脱壳的数组，有的是带 `.value` 的数据库文档。`loadHistory()` 里已经兼容两种形态：
+早期版本通过 `dbStorage.setItem` 存历史记录，写入的是一个 JSON 字符串。迁移到 `db.promises` 后，期望的文档形态是 `{ _id, _rev, items: [...] }`（items 是数组）。
 
-```ts
-const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-const list = Array.isArray(parsed) ? parsed : parsed?.value || [];
-```
+如果数据库查看器里看到某个历史文档的 `value` 字段是一串 JSON 字符串而非展开的 `items` 数组——说明该文档还是遗留格式。当前 `loadHistory()` 会自动检测并在首次读到遗留格式时就地 `put` 重写为 `{items: [...]}`，无需手动处理。
+
+`db.promises.put` 要求入参是可被 `structuredClone` 克隆的普通对象。从 Vue `reactive()` 数组过滤出的元素是 Proxy，不能直接塞进 `put` —— 必须先 `.map(h => ({path, alias, name, ts}))` 撕壳，否则抛 `An object could not be cloned`。
 
 ### 坑 E：plugin.json 改动不生效
 

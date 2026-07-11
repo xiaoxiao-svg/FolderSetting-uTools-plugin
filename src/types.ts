@@ -56,6 +56,13 @@ declare global {
         setItem: (k: string, v: string) => Promise<void>;
         removeItem: (k: string) => Promise<void>;
       };
+      db: {
+        promises: {
+          get: (id: string) => Promise<any>;
+          put: (doc: any) => Promise<{ ok: boolean; rev?: string }>;
+          remove: (doc: any) => Promise<{ ok: boolean }>;
+        };
+      };
     };
 
     services: {
