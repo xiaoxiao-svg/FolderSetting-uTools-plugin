@@ -7,3 +7,6 @@ Thumbs.db
 
 # 测试/系统残留
 desktop.ini
+
+# 代码图谱工具私有数据
+.codegraph/
