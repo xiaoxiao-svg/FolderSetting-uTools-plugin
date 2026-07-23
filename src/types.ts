@@ -98,6 +98,7 @@ declare global {
       setFolderColor: (folderPath: string, colorName: ColorName) => Result;
       clearFolderColor: (folderPath: string) => Result;
       getActiveColor: (folderPath: string) => ColorName | null;
+      getColorIconPath: (colorName: ColorName) => string;
     };
   }
 }

@@ -378,7 +378,9 @@ function pickIcon(i: number) {
 
 function clearIcon(i: number) {
   const folder = folders[i];
-  const r = services.clearFolderIcon(folder.path);
+  // 颜色图标由颜色选择器管理，自定义图标由图标清除管理
+  const hasColor = services.getActiveColor(folder.path);
+  const r = hasColor ? services.clearFolderColor(folder.path) : services.clearFolderIcon(folder.path);
   if (r.success) {
     folder.icon = '';
     afterChange(folder.path, '', '已清除图标');
@@ -396,6 +398,8 @@ function setColor(i: number, colorName: ColorName | '') {
     r = services.setFolderColor(folder.path, colorName);
   }
   if (r.success) {
+    // 同步 folder.icon，让 FolderCard 的 displayIcon 走 folder.icon 优先分支，不依赖过期的 activeColor prop
+    folder.icon = colorName ? services.getColorIconPath(colorName) : '';
     refreshFolders();
     services.notifyFolderChanged(folder.path);
     services.deepRefresh();

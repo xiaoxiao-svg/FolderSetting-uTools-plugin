@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { ColorName, FolderConfig, FolderItem } from '../types';
 
-defineProps<{
+const props = defineProps<{
   folder: FolderItem;
   index: number;
   cfg: FolderConfig;
@@ -21,6 +22,13 @@ const emit = defineEmits<{
   setColor: [index: number, colorName: ColorName | ''];
   stop: [event: Event];
 }>();
+
+// 图标输入框显示值：用户已选图标优先，否则回退到颜色对应的图标路径
+const displayIcon = computed(() => {
+  if (props.folder.icon) return props.folder.icon;
+  if (props.activeColor) return window.services.getColorIconPath(props.activeColor);
+  return '';
+});
 </script>
 
 <template>
@@ -87,11 +95,11 @@ const emit = defineEmits<{
               class="row-input"
               placeholder="选择图标文件"
               readonly
-              v-model="folder.icon"
+              :value="displayIcon"
             />
             <button class="btn btn-ghost btn-sm" @click="emit('pickIcon', index)">选择</button>
             <button
-              v-if="folder.icon"
+              v-if="folder.icon || activeColor"
               class="btn btn-ghost btn-sm"
               @click="emit('clearIcon', index)"
             >清除</button>
