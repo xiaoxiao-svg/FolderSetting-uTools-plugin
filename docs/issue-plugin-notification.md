@@ -1,6 +1,6 @@
 # 问题：mainHide 模式下 utools.showNotification 不生效
 
-**状态**：已修复（待上架验证）
+**状态**：已修复（2026-07-20 补完退出步骤）
 **发现时间**：2026-07-11
 **影响范围**：`folder-merge-to-new`（放入新建文件夹）、`folder-dissolve`（解散文件夹）两个 feature
 
@@ -104,9 +104,9 @@ if (code === 'folder-dissolve') {
 
 ## 待验证
 
-- [ ] 上架后在真实 uTools 环境测试：两个 feature 执行完是否自动退出（mainHide 效果）
-- [ ] 系统通知是否弹出（preload 环境调用 showNotification 是否有效）
-- [ ] 如通知仍不弹出 → 说明 preload 环境的 utools API 也被抑制，需改用 Electron 原生 `new (require('electron').Notification)({ body: msg }).show()`
+- [x] 上架后在真实 uTools 环境测试：两个 feature 执行完是否自动退出 → 2026-07-20 在 preload.js 服务函数内加 `setTimeout(() => utools.outPlugin(), 300)` 主动退出（详见 `docs/issue-mainhide-exit-and-color-icon.md`）
+- [x] 系统通知是否弹出（preload 环境调用 showNotification 是否有效）→ 已验证可弹出
+- [ ] 如通知仍不弹出 → 说明 preload 环境的 utools API 也被抑制，需改用 Electron 原生 `new (require('electron').Notification)({ body: msg }).show()`（保留，300ms 延迟若不够长时启用）
 
 ## 相关文件
 

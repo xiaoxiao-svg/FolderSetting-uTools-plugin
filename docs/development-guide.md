@@ -104,7 +104,7 @@ VITE v7.x.x  ready in xxx ms
 - 刷新：notifyFolderChanged / deepRefresh / refreshExplorer / refreshIconCache / restartExplorer
 - 工具：isDirectory / getFolderName
 - 文件操作：mergeToNewFolder / dissolveFolder
-- 颜色：getAvailableColors / setFolderColor / clearFolderColor / getActiveColor
+- 颜色：getAvailableColors / setFolderColor / clearFolderColor / getActiveColor / getColorIconPath
 
 ### 4.3 Vue 层结构
 
@@ -112,7 +112,7 @@ VITE v7.x.x  ready in xxx ms
 - `src/App.vue` —— 顶层：onPluginEnter 注册 + folders 响应式状态 + tab 切换 + adjustHeight watchEffect
 - `src/composables/useUtools.ts` —— useUtools() 封装 window.utools + window.services + useToast()
 - `src/components/EmptyPanel.vue` —— 空列表 + 拖拽 + 最近设置
-- `src/components/FolderCard.vue` —— 单卡片：别名/备注/图标 + 颜色选择器
+- `src/components/FolderCard.vue` —— 单卡片：别名/备注/图标（displayIcon computed：folder.icon 优先 → getColorIconPath 回退）+ 颜色选择器
 - `src/components/HistoryList.vue` —— 历史记录列表
 
 ### 4.4 数据流
