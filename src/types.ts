@@ -52,9 +52,10 @@ declare global {
       setExpendHeight: (n: number) => void;
       outPlugin: () => void;
       dbStorage: {
-        getItem: (k: string) => Promise<string | null>;
-        setItem: (k: string, v: string) => Promise<void>;
-        removeItem: (k: string) => Promise<void>;
+        // uTools dbStorage 为同步 API（localStorage 语义），不返回 Promise
+        getItem: (k: string) => string | null;
+        setItem: (k: string, v: string) => void;
+        removeItem: (k: string) => void;
       };
       db: {
         promises: {

@@ -87,41 +87,41 @@ async function loadHistory() {
   const doc = await utools.db.promises.get(HISTORY_KEY);
   let { items, needsRewrite } = parseDoc(doc);
   historyRev = (doc as any)?._rev;
-  console.log('[folder-chinese] loadHistory: db items =', items.length);
 
   // 2. 旧格式（value 字符串）→ 原地重写为 {items: [...]}，让数据库查看器能展开
   if (needsRewrite && items.length) {
     const rewriteRes = await utools.db.promises.put({ _id: HISTORY_KEY, _rev: historyRev, items });
-    console.log('[folder-chinese] loadHistory: rewrite legacy =', rewriteRes.ok);
     if (rewriteRes.ok) historyRev = rewriteRes.rev;
   }
 
   // 3. db 为空时，尝试从 dbStorage 迁移旧数据
   //    迁移条件严格：db 空 + dbStorage 有数据 + 写入成功后再次从 db 读到 → 才删旧位
+  //    dbStorage 为同步 API（官方文档），统一同步调用 + try/catch 防御
   if (!items.length) {
-    const legacy = await utools.dbStorage.getItem(HISTORY_KEY);
-    const legacyItems = parseLegacy(legacy);
-    console.log('[folder-chinese] loadHistory: legacy items =', legacyItems.length);
+    let legacy: string | null = null;
+    try {
+      legacy = utools.dbStorage.getItem(HISTORY_KEY);
+    } catch { /* 存储不可用时按无旧数据处理 */ }
+    // 过滤缺关键字段的坏条目，避免坏数据永久写入 db
+    const legacyItems = parseLegacy(legacy).filter(h => h && typeof h.path === 'string');
     if (legacyItems.length) {
       const res = await utools.db.promises.put({ _id: HISTORY_KEY, _rev: historyRev, items: legacyItems });
-      console.log('[folder-chinese] loadHistory: put result =', res);
       if (res.ok) {
         // 写入成功 → 再次从 db 读，确认数据真实落到 db
         const verify = await utools.db.promises.get(HISTORY_KEY);
-        console.log('[folder-chinese] loadHistory: verify items =', Array.isArray((verify as any)?.items) ? (verify as any).items.length : 'not array');
         if (Array.isArray((verify as any)?.items) && (verify as any).items.length) {
           items = (verify as any).items;
           historyRev = (verify as any)._rev;
-          historyList.splice(0, historyList.length, ...items);
           // 确认验证通过后才删旧位
-          utools.dbStorage.removeItem(HISTORY_KEY).catch(() => {});
+          try {
+            utools.dbStorage.removeItem(HISTORY_KEY);
+          } catch { /* 迁移主链路已完成，删除旧位失败不影响 */ }
         }
       }
     }
   }
 
   historyList.push(...items);
-  console.log('[folder-chinese] loadHistory: final historyList =', historyList.length);
 }
 
 async function saveHistory(path: string, alias: string) {
@@ -352,6 +352,12 @@ function resetFolder(i: number) {
   const folder = folders[i];
   const r = services.resetFolder(folder.path);
   if (r.success) {
+    // 同步清空输入框：服务端已重置，前端字段也须清空，避免残留旧值被再次应用
+    folder.alias = '';
+    folder.tip = '';
+    folder.icon = '';
+    // 历史记录同步移除：还原 = 放弃设置，旧快照不再保留（含 db）
+    removeHistory(folder.path);
     afterChange(folder.path, '', '已还原为默认显示');
   } else {
     toast.show('还原失败: ' + r.error, 'error');
