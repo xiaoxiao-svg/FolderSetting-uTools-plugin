@@ -279,8 +279,11 @@ function mergeToNewFolder(filePaths) {
       moved++;
     }
     utools.showNotification(`已创建"${path.basename(newFolderPath)}"并移入 ${moved} 个项目`);
+    setTimeout(() => utools.outPlugin(), 300);
     return { success: true, folderName: path.basename(newFolderPath), moved };
   } catch (e) {
+    utools.showNotification(`操作失败: ${e.message}`);
+    setTimeout(() => utools.outPlugin(), 300);
     return { success: false, error: e.message };
   }
 }
@@ -323,6 +326,7 @@ function dissolveFolder(folderPaths) {
       : `已解散 ${dissolved.length} 个文件夹`;
     utools.showNotification(msg);
   }
+  setTimeout(() => utools.outPlugin(), 300);
   return { success: errors.length === 0, dissolved, errors };
 }
 
@@ -370,6 +374,11 @@ function setFolderColor(folderPath, colorName) {
 
 function clearFolderColor(folderPath) { return clearFolderIcon(folderPath); }
 
+/** 返回某颜色对应的缓存 .ico 路径（供前端显示用） */
+function getColorIconPath(colorName) {
+  return path.join(COLOR_CACHE_DIR, `${colorName}.ico`);
+}
+
 function getActiveColor(folderPath) {
   const cfg = getFolderConfig(folderPath);
   if (!cfg.icon) return null;
@@ -406,5 +415,6 @@ window.services = {
   getAvailableColors,
   setFolderColor,
   clearFolderColor,
-  getActiveColor
+  getActiveColor,
+  getColorIconPath
 };
