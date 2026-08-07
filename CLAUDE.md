@@ -69,6 +69,10 @@ Folder-Chinese/
 - **mainHide 模式与 utools API 的环境差异**：feature 配置 `"mainHide": true"` 后，uTools 会把该 feature 视作"后台执行"，**同时抑制前端渲染进程的 `utools.showNotification` 调用**（前端 rAF / setTimeout 也不触发）。需要弹系统通知时，**必须在 `preload.js` 的服务函数内直接调用** `utools.showNotification`，不要依赖前端。
 - **"直接执行"类 feature 的职责边界**：`mainHide` 的 feature（目前为放入新建文件夹、解散文件夹），业务逻辑 + 用户反馈（系统通知）**全部写在 preload.js**，前端 `App.vue` 只保留调服务函数 + `return`，不介入。
 
+## 版本管理
+
+**本目录为单人小插件项目，豁免上级 `D:\桌面文件\3.uTools\AGENTS.md` 的"任务分支 + 主干合并"工作流**——直接在 master 上开发与提交，不建分支；大范围改动仍建议先建分支或 tag。其余 git 纪律（不自动 push、commit 前确认、精确 staging）沿用全局约定。
+
 ## 开发流程
 
 ```bash
@@ -95,5 +99,6 @@ uTools 开发者工具操作：
 | `"preload"配置文件不是js文件` | uTools 强制 `.js` 后缀 | 不改名为 `.cjs`，保留 `.js` |
 | `Port 5177 is already in use` | 旧的 dev 进程没退出 | `netstat -ano \| findstr 5177` + `taskkill //PID ... //F` |
 | 全部应用报错 `An object could not be cloned` | `db.promises.put` 传入 Vue reactive 数组，Proxy 不可被 structuredClone 克隆 | items 经 `.map(h => ({path, alias, name, ts}))` 撕壳成字面量对象再传 |
+| dbStorage 调用报 `.catch` 错误 / 迁移崩溃 | `utools.dbStorage` 是**同步 API**（localStorage 语义），`getItem` 返回 `string \| null`、`removeItem` 返回 `void`，对它 `.catch()` 抛 TypeError | 直接同步调用 + try/catch；`types.ts` 已按同步签名声明，照此写 |
 | 进入后"最近设置"不显示 | 只在切 tab 才加载历史 | `onMounted` 里立刻 `loadHistory` |
 | 改 plugin.json 不生效 | uTools 缓存旧 plugin.json | 退出接出 + 重新接出 |

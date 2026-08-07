@@ -92,13 +92,13 @@ VITE v7.x.x  ready in xxx ms
 
 `public/plugin.json`（同 `dist/plugin.json`）声明：
 - `main: "index.html"` —— 顶层入口（uTools 强制本地 html）
-- `preload: "preload.cjs"` —— CommonJS（加 `.cjs` 让 electron 跳过 ESM 解析）
+- `preload: "preload.js"` —— CommonJS（配合 `public/package.json` 的 `type: "commonjs"` 让 electron 跳过 ESM 解析；不能改成 `.cjs`，见坑 B）
 - `development.main: "http://127.0.0.1:5177/index.html"` —— 仅开发模式用的热更新入口
 - 5 个 feature：`folder-chinese` / `folder-chinese-batch` / `folder-settings` / `folder-merge-to-new` / `folder-dissolve`
 
 ### 4.2 preload.js 职责
 
-**全部 desktop.ini / 文件系统 / SHChangeNotify / 图标处理的实际代码**。挂载 `window.services` 对象，暴露 21 个方法给 UI 调用：
+**全部 desktop.ini / 文件系统 / SHChangeNotify / 图标处理的实际代码**。挂载 `window.services` 对象，暴露 22 个方法给 UI 调用：
 
 - 配置读写：getFolderConfig / getFolderChineseName / setFolderChineseName / setFolderIcon / clearFolderIcon / setFolderInfoTip / resetFolder / removeFolderChineseName
 - 刷新：notifyFolderChanged / deepRefresh / refreshExplorer / refreshIconCache / restartExplorer
@@ -173,6 +173,8 @@ electron 加载 `.js` 时往上找最近的 `package.json`，读到 `type: "comm
 如果数据库查看器里看到某个历史文档的 `value` 字段是一串 JSON 字符串而非展开的 `items` 数组——说明该文档还是遗留格式。当前 `loadHistory()` 会自动检测并在首次读到遗留格式时就地 `put` 重写为 `{items: [...]}`，无需手动处理。
 
 `db.promises.put` 要求入参是可被 `structuredClone` 克隆的普通对象。从 Vue `reactive()` 数组过滤出的元素是 Proxy，不能直接塞进 `put` —— 必须先 `.map(h => ({path, alias, name, ts}))` 撕壳，否则抛 `An object could not be cloned`。
+
+> ⚠️ **`utools.dbStorage` 是同步 API**（localStorage 语义）：`getItem` 返回 `string | null`，`setItem` / `removeItem` 返回 `void`，没有 Promise。对它 `.catch()` 会抛 TypeError（曾导致迁移路径崩溃）。`src/types.ts` 已按同步签名声明，新代码照此写；`loadHistory` 迁移分支为同步调用 + try/catch 防御的形态。
 
 ### 坑 E：plugin.json 改动不生效
 
