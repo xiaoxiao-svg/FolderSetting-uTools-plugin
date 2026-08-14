@@ -13,3 +13,7 @@ desktop.ini
 
 # delivery-review 工作流状态（不入库）
 .delivery-review/
+
+# 文档相关
+docs/
+CLAUDE.md
