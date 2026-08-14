@@ -14,6 +14,9 @@ desktop.ini
 # delivery-review 工作流状态（不入库）
 .delivery-review/
 
+# 打包产物
+dist/
+
 # 文档相关
 docs/
 CLAUDE.md
