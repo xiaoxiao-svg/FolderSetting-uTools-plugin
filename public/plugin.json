@@ -9,9 +9,6 @@
   "development": {
     "main": "http://127.0.0.1:5177/index.html"
   },
-  "pluginSetting": {
-    "height": 600
-  },
   "features": [
     {
       "code": "folder-chinese",
