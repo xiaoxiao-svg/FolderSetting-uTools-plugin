@@ -109,7 +109,7 @@ VITE v7.x.x  ready in xxx ms
 ### 4.3 Vue 层结构
 
 - `src/main.ts` —— Vue 应用入口
-- `src/App.vue` —— 顶层：onPluginEnter 注册 + folders 响应式状态 + tab 切换（窗口高度固定默认 544，不动态调整）
+- `src/App.vue` —— 顶层：onPluginEnter 注册 + folders 响应式状态 + tab 切换（窗口高度固定默认，不动态调整）
 - `src/composables/useUtools.ts` —— useUtools() 封装 window.utools + window.services + useToast()
 - `src/components/EmptyPanel.vue` —— 空列表 + 拖拽 + 最近设置
 - `src/components/FolderCard.vue` —— 单卡片：别名/备注/图标（displayIcon computed：folder.icon 优先 → getColorIconPath 回退）+ 颜色选择器

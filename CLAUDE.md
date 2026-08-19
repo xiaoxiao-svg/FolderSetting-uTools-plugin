@@ -62,7 +62,7 @@ Folder-Chinese/
 
 - **状态**：`folders = reactive<FolderItem[]>`、`historyList = reactive<HistoryItem[]>`、`currentTab = ref<'edit'|'history'>` —— 不用 pinia（数据量小）。
 - **生命周期**：`onMounted` 里先注册 `utools.onPluginEnter`、再立刻 `loadHistory()`（不等切 tab，否则"最近设置"不显示）。
-- **高度**：窗口高度固定为 pluginSetting 默认值（544），代码里不调 `utools.setExpendHeight` 动态覆盖——该 API 在 dev（接出开发）环境不生效、打包后才生效，用它在 dev 验证会误判。
+- **高度**：窗口高度固定为 uTools 默认值，代码里不调 `utools.setExpendHeight` 动态覆盖——该 API 在 dev（接出开发）环境不生效、打包后才生效，用它在 dev 验证会误判。
 - **HMR 兜底**：`import.meta.hot?.dispose + accept`（uTools 的 window 理论上不重建，但保底）。
 - **历史记录存储已迁移到 `utools.db.promises`**：文档形态 `{_id, _rev, items: [...]}`，`.put` 原生对象/数组（NoSQL 展开存储）。`dbStorage` 仅作遗留数据迁移的降级读取位（db 为空时从 dbStorage 读旧数据写入 db）。
 - **uTools 缓存 plugin.json**：改 plugin.json 后必须"退出到后台立即结束运行"+重新"接出开发"。
