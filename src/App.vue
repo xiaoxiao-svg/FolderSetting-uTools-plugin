@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import EmptyPanel from './components/EmptyPanel.vue';
 import FolderCard from './components/FolderCard.vue';
 import HistoryList from './components/HistoryList.vue';
@@ -150,15 +150,6 @@ function refreshFolders() {
     .filter(h => services.isDirectory(h.path))
     .slice(0, 5);
   recentEmptyCache.push(...recent);
-  adjustHeight();
-}
-
-function adjustHeight() {
-  try {
-    utools.setExpendHeight(600);
-  } catch {
-    // dev 环境无 utools 时忽略
-  }
 }
 
 // 处理插件进入事件
@@ -441,13 +432,6 @@ function stopPropagation(e: Event) {
   e.stopPropagation();
 }
 
-// 高度调整：每次数据变化后自动同步
-watch(
-  () => [currentTab.value, folders.length, historyList.length],
-  () => nextTick(adjustHeight),
-  { flush: 'post' }
-);
-
 // 生命周期 / HMR 支持
 onUnmounted(() => {
   if (onPluginEnterCb) {
@@ -462,13 +446,6 @@ onMounted(() => {
   // 进入插件立刻加载历史，不等切 tab
   loadHistory().then(() => refreshFolders());
 });
-
-// 首次注册后确保高度正确
-watch(
-  () => currentTab.value,
-  () => nextTick(adjustHeight),
-  { immediate: true, flush: 'post' }
-);
 
 // HMR 重注册：uTools 的 window 上下文不被 vite 重建，但回调可能丢失
 if (import.meta.hot) {
