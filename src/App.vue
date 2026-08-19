@@ -148,7 +148,7 @@ function refreshFolders() {
   recentEmptyCache.splice(0, recentEmptyCache.length);
   const recent = historyList
     .filter(h => services.isDirectory(h.path))
-    .slice(0, 5);
+    .slice(0, 4);
   recentEmptyCache.push(...recent);
 }
 
