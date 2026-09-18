@@ -12,6 +12,7 @@
   "features": [
     {
       "code": "folder-chinese",
+      "icon": "icon/logo.png",
       "explain": "为当前文件夹设置中文别名、图标、备注",
       "cmds": [
         "文件夹别名",
@@ -20,6 +21,7 @@
     },
     {
       "code": "folder-chinese-batch",
+      "icon": "icon/logo.png",
       "explain": "批量设置文件夹中文别名",
       "cmds": [
         {
@@ -33,6 +35,7 @@
     },
     {
       "code": "folder-settings",
+      "icon": "icon/logo.png",
       "explain": "管理已设置过的文件夹（历史记录）",
       "cmds": [
         "文件夹历史",
@@ -41,6 +44,7 @@
     },
     {
       "code": "folder-merge-to-new",
+      "icon": "icon/logo_1.png",
       "explain": "将选中的文件或文件夹放入新建文件夹",
       "mainHide": true,
       "cmds": [
@@ -54,6 +58,7 @@
     },
     {
       "code": "folder-dissolve",
+      "icon": "icon/logo_2.png",
       "explain": "将选中文件夹内的项目解散到上一级目录",
       "mainHide": true,
       "cmds": [
