@@ -17,7 +17,7 @@ desktop.ini
 # 打包产物
 dist/
 
-# 文档相关
+# 文档相关（私有，不进公开主仓库）
 docs/
 CLAUDE.md
 
