@@ -1,5 +1,5 @@
 :root {
-  --bg: #f4f5f7;
+  --bg: transparent;
   --card-bg: #ffffff;
   --text: #1f2329;
   --text-2: #646a73;
@@ -19,7 +19,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #303133;
+    --bg: transparent;
     --card-bg: #232326;
     --text: #e8e8ea;
     --text-2: #a8a8ad;
